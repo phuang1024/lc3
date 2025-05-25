@@ -1,4 +1,5 @@
 // 8 addr (3 bit) mux, 16 bit word
+// This module can be used for lower level muxes as well (not using all addrs).
 
 module mux3(
     input logic [7:0][15:0] in,
