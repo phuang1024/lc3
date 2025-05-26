@@ -21,4 +21,10 @@ module register(
     always_comb begin
         out_data = latch2_data;
     end
+
+    // Helper
+    function static void set_data(input logic [15:0] data);
+        latch1_data = data;
+        latch2_data = data;
+    endfunction
 endmodule
