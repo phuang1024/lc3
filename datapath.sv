@@ -22,7 +22,13 @@ module datapath(
     input logic gate_pc,
     // marmux
     input logic marmux_sel,
-    input logic gate_marmux
+    input logic gate_marmux,
+    // memory
+    input logic ld_mar,
+    input logic ld_mdr,
+    input logic mem_en,  // controls source of mdr
+    input logic mem_rw,  // controls memory unit rw
+    input logic gate_mdr
 );
     // global
     wire [15:0] bus;
@@ -164,5 +170,38 @@ module datapath(
         .data_in(marmux_out),
         .enable(gate_marmux),
         .data_out(bus)
+    );
+
+    // memory
+    wire [15:0] mar_out, mdr_out, mdr_mux_out, mem_out;
+    mux3 mdr_mux(
+        .in({16'b0, 16'b0, 16'b0, 16'b0, 16'b0, 16'b0,
+             mem_out, bus}),  // only last two.
+        .sel({1'b0, 1'b0, mem_en}),
+        .out(mdr_mux_out)
+    );
+    register mar(
+        .clk(clk),
+        .write_en(ld_mar),
+        .in_data(bus),
+        .out_data(mar_out)
+    );
+    register mdr(
+        .clk(clk),
+        .write_en(ld_mdr),
+        .in_data(mdr_mux_out),
+        .out_data(mdr_out)
+    );
+    tribuf mdr_tribuf(
+        .data_in(mdr_out),
+        .enable(gate_mdr),
+        .data_out(bus)
+    );
+    memory mem(
+        .clk(clk),
+        .write_en(mem_rw),
+        .addr(mar_out),
+        .in_data(mdr_out),
+        .out_data(mem_out)
     );
 endmodule

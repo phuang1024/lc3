@@ -1,5 +1,7 @@
 // 16 bit addressable word size, 16 bit address memory.
 // For now, we omit "ready" and treat it like a regfile.
+// Reading from memory to register takes 2 clock cycles. The first moves the data
+// into out_data, and the second reads it into whatever register is connected.
 
 module memory(
     input logic clk,
