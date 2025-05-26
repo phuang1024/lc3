@@ -1,4 +1,6 @@
-// 16 bit register.
+// 16 bit positive edge triggered register.
+// On positive edge, input data is read into latch 1.
+// On negative edge, this is transferred to latch 2.
 
 module register(
     input logic clk,
@@ -9,12 +11,12 @@ module register(
     // Data for latch 1 (intermediate) and latch 2 (output).
     logic [15:0] latch1_data, latch2_data;
 
-    always_ff @(negedge clk) begin
+    always_ff @(posedge clk) begin
         if (write_en) begin
             latch1_data <= in_data;
         end
     end
-    always_ff @(posedge clk) begin
+    always_ff @(negedge clk) begin
         latch2_data <= latch1_data;
     end
 

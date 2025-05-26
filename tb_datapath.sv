@@ -76,11 +76,45 @@ module tb_datapath;
         @(posedge clk);
     endtask
 
+    // Test PC increment.
+    task static test_pc_inc();
+        dp.pc.set_data(3000);
+        pcmux_sel = 2'b10;
+        ld_pc = 1;
+        gate_pc = 1;
+
+        @(posedge clk);   // PC = 3000
+        @(posedge clk);   // PC = 3001
+        @(posedge clk);   // PC = 3002
+    endtask
+
+    // Test two instructions in sequence.
+    // R0 <= R1 + R2  (R0 = 3)
+    // R7 <= NOT R0  (R7 = NOT 3)
+    task static test_2ins();
+        dp.ir.set_data(16'b0001_000_001_000_010);  // R0 <= R1 + R2
+        ld_reg = 1;
+        dr = 0;
+        sr1 = 1;
+        sr2 = 2;
+        aluk = 2'b10;
+        gate_alu = 1;
+        @(posedge clk); #1;  // Wait one time unit before next instruction
+
+        dp.ir.set_data(16'b1001_111_000_111111);  // R7 <= NOT R0
+        dr = 7;
+        sr1 = 0;
+        aluk = 2'b00;
+        @(posedge clk); #1;
+    endtask
+
     initial begin
         init_signals();
         init_regs();
 
-        test_add();
+        //test_add();
+        //test_pc_inc();
+        test_2ins();
 
         $finish;
     end
