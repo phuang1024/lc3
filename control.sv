@@ -27,6 +27,9 @@ module control();
                 a1m_sel, a2m_sel, ld_pc, pcmux_sel, gate_pc, marmux_sel,
                 gate_marmux, ld_mar, ld_mdr, mem_en, mem_rw, gate_mdr);
 
+    // Control unit has access to IR register.
+    wire [15:0] ir = dp.ir.out_data;
+
     function static void reset_signals();
         ld_ir = 0;
         ld_reg = 0;
@@ -51,8 +54,7 @@ module control();
 
     // Wait posedge + 1t
     task static waitclk();
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
     endtask
 
     // MDR <= M[MAR]
@@ -88,5 +90,26 @@ module control();
         gate_mdr = 1;
         ld_ir = 1;
         waitclk();
+    endtask
+
+    // DR <= NOT(SR)
+    task static exec_not();
+        reset_signals();
+        sr1 = ir[8:6];
+        dr = ir[11:9];
+        aluk = 2'b00;
+        gate_alu = 1;
+        ld_reg = 1;
+        waitclk();
+    endtask
+
+    // Full pipeline. Load and execute instruction at PC.
+    task static exec_instruction();
+        load_ir();
+        waitclk();
+        case (ir[15:12])
+            4'b1001: exec_not();
+            default: $display("Unknown instruction: pc=%b, ir=%b", dp.pc.out_data, ir);
+        endcase
     endtask
 endmodule

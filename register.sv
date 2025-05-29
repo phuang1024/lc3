@@ -8,6 +8,7 @@ module register(
     input logic [15:0] in_data,
     output logic [15:0] out_data
 );
+    /*
     // Data for latch 1 (intermediate) and latch 2 (output).
     logic [15:0] latch1_data, latch2_data;
 
@@ -28,5 +29,17 @@ module register(
     function static void set_data(input logic [15:0] data);
         latch1_data = data;
         latch2_data = data;
+    endfunction
+    */
+
+    always_ff @(posedge clk) begin
+        if (write_en) begin
+            out_data <= in_data;
+        end
+    end
+
+    // Helper function to set data.
+    function static void set_data(input logic [15:0] data);
+        out_data = data;
     endfunction
 endmodule
