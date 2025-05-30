@@ -29,8 +29,9 @@ module control();
                 gate_marmux, ld_cc, ld_mar, ld_mdr, mem_en, mem_rw,
                 gate_mdr);
 
-    // Control unit has access to IR register.
+    // Control unit has access to these.
     wire [15:0] ir = dp.ir.out_data;
+    wire [2:0] cc = dp.cc.out_data;
 
     function static void reset_signals();
         ld_ir = 0;
@@ -62,10 +63,18 @@ module control();
     // MDR <= M[MAR]
     task static read_mem();
         reset_signals();
-        ld_pc = 0;
-        gate_pc = 0;
         mem_en = 1;
         ld_mdr = 1;
+        waitclk();
+        waitclk();
+        reset_signals();
+    endtask
+
+    // M[MAR] <= MDR
+    task static write_mem();
+        reset_signals();
+        mem_en = 1;
+        mem_rw = 1;
         waitclk();
         waitclk();
         reset_signals();
@@ -162,13 +171,51 @@ module control();
         end
     endtask
 
+    // ST
+    task static exec_st();
+        reset_signals();
+        // MAR
+        a1m_sel = 1;
+        a2m_sel = 1;
+        marmux_sel = 1;
+        gate_marmux = 1;
+        ld_mar = 1;
+        waitclk();
+
+        // MDR
+        ld_mar = 0;
+        sr1 = ir[11:9];
+        a1m_sel = 0;
+        a2m_sel = 3;
+        mem_en = 0;
+        ld_mdr = 1;
+
+        write_mem();
+    endtask
+
+    // LEA
     task static exec_lea();
+        reset_signals();
         a1m_sel = 1;
         a2m_sel = 1;
         dr = ir[11:9];
         marmux_sel = 1;
         gate_marmux = 1;
         ld_reg = 1;
+        waitclk();
+    endtask
+
+    // BR
+    task static exec_br();
+        reset_signals();
+        if (cc[0] && ir[11] || cc[1] && ir[10] || cc[2] && ir[9]) begin
+            a1m_sel = 1;
+            a2m_sel = 1;
+            marmux_sel = 1;
+            gate_marmux = 1;
+            pcmux_sel = 0;
+            ld_pc = 1;
+        end
         waitclk();
     endtask
 
@@ -179,6 +226,8 @@ module control();
         case (ir[15:12])
             4'b1001, 4'b0101, 4'b0001: exec_alu();  // NOT, AND, ADD
             4'b0010, 4'b0110, 4'b1010: exec_ld();  // LD, LDR, LDI
+            4'b1110: exec_lea();  // LEA
+            4'b0000: exec_br();  // BR
             default: $display("Unknown instruction: pc=%b, ir=%b", dp.pc.out_data, ir);
         endcase
     endtask
