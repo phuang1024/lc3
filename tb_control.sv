@@ -42,10 +42,17 @@ module tb_control();
     task static test_program();
         init_regs();
         ctrl.dp.pc.set_data(0);
-        ctrl.dp.mem.mem[0] = 16'b1001_000_111_111111;
+        ctrl.dp.mem.mem[0] = 16'b0010_000_000001010;  // LD R0, #10
+        ctrl.dp.mem.mem[1] = 16'b0110_000_000_000000;  // LDR R0, R0, #0
+        ctrl.dp.mem.mem[2] = 16'b1010_000_000001010;  // LDI R0, #10
+        ctrl.dp.mem.mem[11] = 12;
+        ctrl.dp.mem.mem[12] = 1001;
+        ctrl.dp.mem.mem[13] = 11;
 
-        ctrl.exec_instruction();
-        $display("R0=%b", ctrl.dp.regs.regs[0].out_data);
+        repeat (3) begin
+            ctrl.exec_instruction();
+            $display("R0=%b", ctrl.dp.regs.regs[0].out_data);
+        end
     endtask
 
     initial begin
