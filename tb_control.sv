@@ -33,16 +33,24 @@ module tb_control();
 
         // Program counts number of negative values beginning at x2000.
         // Ends when a value 0 is reached.
+        // Store answer at x3000.
+
         m[0] = 16'b0101_000_000_1_00000;  // AND R0, R0, #0
-        m[1] = 16'b0010_001_000000111;  // LD R1, #7 (m[9])
+        m[1] = 16'b0010_001_000010010;  // LD R1, #18 (m[20])
+
         m[2] = 16'b0110_010_001_000000;  // LDR R2, R1, #0
         m[3] = 16'b0000_010_000000100;  // BRz #4 (m[8])
         m[4] = 16'b0000_001_000000001;  // BRp #1 (m[6])
         m[5] = 16'b0001_000_000_1_00001;  // ADD R0, R0, #1
         m[6] = 16'b0001_001_001_1_00001;  // ADD R1, R1, #1
         m[7] = 16'b0000_111_111111010;  // BRnzp #-6 (m[2])
-        m[8] = 16'b1111_0000_00000000;  // TRAP
-        m[9] = 16'h2000;  // x2000
+
+        m[8] = 16'b0010_001_000001100;  // LD R1, #12 (m[21])
+        m[9] = 16'b0111_000_001_000000;  // STR R0, R1, #0
+        m[10] = 16'b1111_0000_00000000;  // TRAP
+
+        m[20] = 16'h2000;
+        m[21] = 16'h3000;
 
         m['h2000] = 1;
         m['h2001] = 2;
@@ -54,9 +62,10 @@ module tb_control();
         m['h2007] = 0;
 
         ctrl.dp.mem.mem = m;
-        repeat (100) begin
+        while (1) begin
             ctrl.exec_instruction();
             print();
+            $display("m[x3000]=%b", ctrl.dp.mem.mem[16'h3000]);
         end
     endtask
 
