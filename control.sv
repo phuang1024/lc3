@@ -228,6 +228,7 @@ module control();
             4'b0010, 4'b0110, 4'b1010: exec_ld();  // LD, LDR, LDI
             4'b1110: exec_lea();  // LEA
             4'b0000: exec_br();  // BR
+            4'b1111: $finish;  // TRAP (halts, for now)
             default: $display("Unknown instruction: pc=%b, ir=%b", dp.pc.out_data, ir);
         endcase
     endtask
