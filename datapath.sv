@@ -66,7 +66,7 @@ module datapath(
     );
     mux3 sr2mux(
         .in({16'b0, 16'b0, 16'b0, 16'b0, 16'b0, 16'b0,
-             regs_sr2_out, sr2mux_sext_out}),  // only last two.
+             sr2mux_sext_out, regs_sr2_out}),  // only last two.
         .sel({1'b0, 1'b0, ir_out[5]}),
         .out(sr2mux_out)
     );

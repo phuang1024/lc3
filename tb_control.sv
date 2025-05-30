@@ -27,16 +27,34 @@ module tb_control();
     endtask
 
     task static test_program();
+        bit [15:0] m[65536];  // For convenience.
         init_regs();
         ctrl.dp.pc.set_data(0);
-        ctrl.dp.mem.mem[0] = 16'b0010_000_000001010;  // LD R0, #10
-        ctrl.dp.mem.mem[1] = 16'b0110_000_000_000000;  // LDR R0, R0, #0
-        ctrl.dp.mem.mem[2] = 16'b1010_000_000001010;  // LDI R0, #10
-        ctrl.dp.mem.mem[11] = 12;
-        ctrl.dp.mem.mem[12] = -1001;
-        ctrl.dp.mem.mem[13] = 11;
 
-        repeat (3) begin
+        // Program counts number of negative values beginning at x2000.
+        // Ends when a value 0 is reached.
+        m[0] = 16'b0101_000_000_1_00000;  // AND R0, R0, #0
+        m[1] = 16'b0010_001_000000111;  // LD R1, #7 (m[9])
+        m[2] = 16'b0110_010_001_000000;  // LDR R2, R1, #0
+        m[3] = 16'b0000_010_000000100;  // BRz #4 (m[8])
+        m[4] = 16'b0000_001_000000001;  // BRp #1 (m[6])
+        m[5] = 16'b0001_000_000_1_00001;  // ADD R0, R0, #1
+        m[6] = 16'b0001_001_001_1_00001;  // ADD R1, R1, #1
+        m[7] = 16'b0000_111_111111010;  // BRnzp #-6 (m[2])
+        m[8] = 16'b1111_0000_00000000;  // TRAP
+        m[9] = 16'h2000;  // x2000
+
+        m['h2000] = 1;
+        m['h2001] = 2;
+        m['h2002] = -1;
+        m['h2003] = 3;
+        m['h2004] = -2;
+        m['h2005] = -3;
+        m['h2006] = 4;
+        m['h2007] = 0;
+
+        ctrl.dp.mem.mem = m;
+        repeat (100) begin
             ctrl.exec_instruction();
             print();
         end
