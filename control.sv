@@ -17,6 +17,7 @@ module control();
     logic gate_pc;
     logic marmux_sel;
     logic gate_marmux;
+    logic ld_cc;
     logic ld_mar;
     logic ld_mdr;
     logic mem_en;
@@ -25,7 +26,8 @@ module control();
 
     datapath dp(clk, ld_ir, ld_reg, dr, sr1, sr2, aluk, gate_alu,
                 a1m_sel, a2m_sel, ld_pc, pcmux_sel, gate_pc, marmux_sel,
-                gate_marmux, ld_mar, ld_mdr, mem_en, mem_rw, gate_mdr);
+                gate_marmux, ld_cc, ld_mar, ld_mdr, mem_en, mem_rw,
+                gate_mdr);
 
     // Control unit has access to IR register.
     wire [15:0] ir = dp.ir.out_data;
@@ -106,6 +108,7 @@ module control();
         endcase
         gate_alu = 1;
         ld_reg = 1;
+        ld_cc = 1;
         waitclk();
     endtask
 
@@ -137,6 +140,7 @@ module control();
         gate_marmux = 0;
         gate_mdr = 1;
         ld_reg = 1;
+        ld_cc = 1;
         waitclk();
 
         // If LDI, read memory again.
@@ -153,6 +157,7 @@ module control();
             gate_marmux = 0;
             gate_mdr = 1;
             ld_reg = 1;
+            ld_cc = 1;
             waitclk();
         end
     endtask

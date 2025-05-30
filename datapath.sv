@@ -23,6 +23,8 @@ module datapath(
     // marmux
     input logic marmux_sel,
     input logic gate_marmux,
+    // cc
+    input logic ld_cc,
     // memory
     input logic ld_mar,
     input logic ld_mdr,
@@ -170,6 +172,19 @@ module datapath(
         .data_in(marmux_out),
         .enable(gate_marmux),
         .data_out(bus)
+    );
+
+    // cc register, based on bus value.
+    wire cc_n = bus[15];
+    wire cc_z = (bus == 16'b0) ? 1'b1 : 1'b0;
+    wire cc_p = ~cc_n & ~cc_z;
+    wire [2:0] cc_in = {cc_n, cc_z, cc_p};
+    wire [2:0] cc_out;  // Control can access this.
+    register#(3) cc(
+        .clk(clk),
+        .write_en(ld_cc),
+        .in_data(cc_in),
+        .out_data(cc_out)
     );
 
     // memory
