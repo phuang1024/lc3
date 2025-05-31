@@ -27,7 +27,7 @@ module runprog();
         int fd;
         bit [15:0] i;
         bit [15:0] value;
-        byte tmp;
+        string tmp;
 
         $display("Reading %s", file);
         fd = $fopen(file, "r");
@@ -45,7 +45,7 @@ module runprog();
                 `DP.mem.mem[i] = value;
                 i++;
             end else begin
-                $fscanf(fd, "%c", tmp);
+                $fgets(tmp, fd);
             end
         end
         $fclose(fd);
