@@ -210,6 +210,36 @@ module control();
         write_mem();
     endtask
 
+    // STI
+    task static exec_sti();
+        reset_signals();
+
+        // MAR <= M[PC + off]
+        a1m_sel = 1;
+        a2m_sel = 1;
+        marmux_sel = 1;
+        gate_marmux = 1;
+        ld_mar = 1;
+        waitclk();
+        read_mem();
+        gate_mdr = 1;
+        ld_mar = 1;
+        waitclk();
+
+        // MDR <= SR
+        sr1 = ir[11:9];
+        a1m_sel = 0;
+        a2m_sel = 3;
+        marmux_sel = 1;
+        gate_marmux = 1;
+        mem_en = 0;
+        ld_mdr = 1;
+        waitclk();
+
+        // M[MAR] <= MDR
+        write_mem();
+    endtask
+
     // LEA
     task static exec_lea();
         reset_signals();
@@ -244,6 +274,7 @@ module control();
             4'b1001, 4'b0101, 4'b0001: exec_alu();  // NOT, AND, ADD
             4'b0010, 4'b0110, 4'b1010: exec_ld();  // LD, LDR, LDI
             4'b0011, 4'b0111: exec_st();  // ST, STR
+            4'b1011: exec_sti();  // STI
             4'b1110: exec_lea();  // LEA
             4'b0000: exec_br();  // BR
             4'b1111: $finish;  // TRAP (halts, for now)
